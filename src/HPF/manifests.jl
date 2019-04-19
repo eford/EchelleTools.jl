@@ -1,7 +1,7 @@
-module HPFManifests
+module Manifests
 
 import ..ManifestFormatEntry
- import ..hpf_manifest_format
+import ..hpf_manifest_format
 import ..base_path, ..base_path_default, ..manifest_subdir_default, ..data_subdir_default
 
 export read
