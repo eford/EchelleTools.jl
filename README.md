@@ -39,3 +39,9 @@ data = read_hpf_data(filename_list,orders=5:20)
 mean_spec = mean_spectrum(data)
 ```
 
+- Save compact form of data to disk
+```julia
+using JLD2, FileIO
+save("GJ_699.jld2", Dict("data"=>data) )
+```
+
