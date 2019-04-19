@@ -1,11 +1,13 @@
 # EchelleTools.jl
 
 ## Install
-Using julia >v1.0
+- Install julia v1.0 or greater
+- Install EchelleTools.jl (note it is not a registered package)
 ```julia
 using Pkg
 Pkg.add(PackageSpec(url="https://github.com/eford/EchelleTools.jl"))
 ```
+- Have some data on disk
 
 ## Tools Avaliable
 - Read Manifest Files
@@ -24,8 +26,8 @@ filename_list = get_hpf_data_filenames(df)
 
 - Extract data
 ```julia
-data = read_hpf_data(filename_list[1])
-data_3d = read_hpf_data(filename_list,orders=5:20)
+data_1obs = read_hpf_data(filename_list[1])
+data = read_hpf_data(filename_list,orders=5:20)
 ```
 
 - Analyze data
