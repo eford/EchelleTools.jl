@@ -1,5 +1,5 @@
 module HPFData
-export read_hpf_data
+export read_data
 
 import ..EchelleObservation, ..EchelleObservationSet, ..OrdersType
 import ..hpf_flux_hdu, ..hpf_var_hdu, ..hpf_lambda_hdu, ..hpf_all_orders
@@ -7,6 +7,11 @@ using FITSIO
 
 #const OrdersType = Union{Int64,UnitRange{Int64},AbstractVector{Int64}}
 
+"""
+read_data(filename; orders)
+Example:
+   data = read_data(filename_list[1])
+"""
 function read_data(filename::String; orders::OrdersType = hpf_all_orders )
    fits = FITS(filename)
    if typeof(orders) <: Integer
@@ -37,6 +42,11 @@ function read_data!(data::EchelleObservationSet{T1,T2,T3}, i::Int, filename::Str
    return data
 end
 
+"""
+read_data(filenames; orders)
+Example:
+   data = read_data(filename_list, orders=10:15)
+"""
 function read_data(filename_list::AbstractArray{String,1}; orders::OrdersType = hpf_all_orders )
    @assert length(filename_list) >= 1
    data_first = read_data(filename_list[1], orders=orders)
@@ -50,19 +60,11 @@ function read_data(filename_list::AbstractArray{String,1}; orders::OrdersType = 
    return data
 end
 
-"""
-read_hpf_data(filename; orders)
-Example:
-   data = read_hpf_data(filename_list[1])
-"""
+#=
 read_hpf_data(filename::String; orders::OrdersType = hpf_all_orders ) = read_data(filename, orders=orders)
-
-"""
-read_hpf_data(filenames; orders)
-Example:
-   data = read_hpf_data(filename_list, orders=10:15)
-"""
 read_hpf_data(filename_list::AbstractArray{String,1}; orders::OrdersType = hpf_all_orders ) = read_data(filename_list, orders=orders)
+=#
 
 end # module
+
 
