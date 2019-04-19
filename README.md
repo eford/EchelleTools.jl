@@ -25,7 +25,7 @@ filename_list = get_hpf_data_filenames(df)
 ```
 - Combine reading manifest and extracting filenames
 ```julia
-files = get_hpf_data_filenames(filter_object=r"GJ.699",filter_obstype=r"Sci")
+filename_list = get_hpf_data_filenames(filter_object=r"GJ.699",filter_obstype=r"Sci")
 ```
 
 - Extract data
