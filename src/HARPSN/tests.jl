@@ -1,22 +1,48 @@
-using Dates
 using EchelleTools
-using Statistics
-
-(fns,zbsrv) = EchelleTools.HARPSN.get_harpsn_data_filenames_and_bsrv(date_start=Date(2015,1,1),date_stop=Date(2015,12,1))
+using Dates
+(fns,zbsrv) = EchelleTools.HARPSN.get_harpsn_data_filenames_and_bsrv(date_start=Date(2015,1,1),date_stop=Date(2015,9,1))
 data = EchelleTools.HARPSN.read_data(fns)
 zlist = map(d->d[:z_bc],data.metadata_list)
-flat_blaze_list = make_flat_blaze(data)
-blaze_list = make_blaze(data)
-sm = SpectralModel(data)
-sm = SpectralModel(data, blaze_list=blaze_list)
-normalizations = calc_normalizations(blaze_list,data)
-obsm = ObsSeriesModel(num_obs(data), z_bc=zlist, normalization=normalizations)
-som = SpectralOrderModel(sm,1)
-om = ObservationModel(obsm,1)
-m11 = eval_model(log.(data.lambda[:,1,1]), som, om)[som.blaze.pixel_range]
-m1 = eval_model(log.(data.lambda[:,:,1]), sm, om)
-m1 = eval_model(log.(data.lambda), sm, obsm)
+blaze_list = read_blaze_list(data) # Need to inject lambda limits from somewhere into blaze_list
 
+sm = SpectralModel(data, blaze_list=blaze_list)
+normalizations =  EchelleTools.Blaze.calc_normalizations(blaze_list,data)
+obsm = ObsSeriesModel(num_obs(data), z_bc=zlist, normalization=normalizations)
+order = 30
+obsid = 1
+om = ObservationModel(obsm,obsid)
+som = SpectralOrderModel(sm,order)
+
+m11 = eval_model(som, om)[som.blaze.pixel_range]
+m1 = eval_model(sm, om, log.(data.lambda[:,:,obsid]), )
+m = eval_model(sm, obsm, log.(data.lambda))
+#chisq =  eval_model_fit(data, sm, obsm) # WARNING: slow
+num_pixels_summed = mapreduce(i->length(SpectralOrderModel(sm,i).blaze.pixel_range),+,1:num_orders(data))
+
+using Plots
+pyplot()
+plot(data.lambda[:,order,obsid],m2[:,order,obsid]./obsm.normalization[obsid],markersize=1)
+plot!(data.lambda[:,order,obsid+1],m2[:,order,obsid+1]./obsm.normalization[obsid+1],markersize=1)
+plot!(data.lambda[:,order,obsid+2],m2[:,order,obsid+2]./obsm.normalization[obsid+2],markersize=1)
+scatter!(data.lambda[:,order,obsid],data.flux[:,order,obsid]./obsm.normalization[obsid],markersize=1)
+scatter!(data.lambda[:,order,obsid+1],data.flux[:,order,obsid+1]./obsm.normalization[obsid+1],markersize=1)
+scatter!(data.lambda[:,order,obsid+2],data.flux[:,order,obsid+2]./obsm.normalization[obsid+2],markersize=1)
+
+
+#=
+flat_blaze_list = make_flat_blaze_polynomial_2d(data)
+blaze_list = make_blaze_polynomial_2d(data)
+sm = SpectralModel(data)
+normalizations = calc_normalizations(blaze_list,data)
+ave_normalization = mean(normalizations)
+blaze_list = map(i->renormalize(blaze_list[i],ave_normalization), 1:length(blaze_list))
+blaze_list = read_blaze_list()
+normalizations ./= ave_normalization
+=#
+
+
+#=
+using Statistics
 
 order = 1
 obsid = 1
@@ -29,9 +55,9 @@ sm = make_spectral_model(data, z_bc=zlist)
 
 evalm = eval_model(llr,sm[1],obs_i)
 
-
 obsm = make_observations_model(data, sm, z_bc=zlist)
 evalm = eval_model(llr,sm[1],1)
+=#
 
 #=
 obsid = 1

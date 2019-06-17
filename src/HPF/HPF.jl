@@ -1,7 +1,8 @@
 module HPF
 
 # Import types from EchelleTools
-import ..ManifestFormatEntry
+import ..AbstractManifestFormatEntry
+#import ..ManifestFormatEntry
 import ..EchelleObservation, ..EchelleObservationSet, ..OrdersType
 import ..AbstractInstrument, ..HPFType
 
@@ -25,4 +26,3 @@ read_hpf_data = read_data
 export read_hpf_data
 
 end # module HPF
-

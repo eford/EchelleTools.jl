@@ -1,5 +1,3 @@
-#include("abstract_types.jl")
-
 # Structures for reading in data
 """ EchelleObservation contains observations for one echelle observation.
 Arrays organized into (pixels,orders).
@@ -13,8 +11,8 @@ struct EchelleObservation{T1,T2,T3,T4,T5} <: AbstractEchelleObservation where { 
    instrument::T5
    metadata::Dict{Symbol,Any}
 
-   function EchelleObservation{T1,T2,T3,T4,T5}(;lambda::LambdaT,flux::FluxT,var::VarT,
-       z_bc::T4, instrument::T5 = T5(), metadata::AbstractDict = Dict{Symbol,Any}()
+   function EchelleObservation{T1,T2,T3,T4,T5}(lambda::LambdaT,flux::FluxT,var::VarT,
+       z_bc::T4, instrument::T5, metadata::AbstractDict
        )  where { T1<:Number, T2<:Number, T3<:Number, T4<:Number, T5<:AbstractInstrument,
        LambdaT <: AbstractArray{T1,2}, FluxT <: AbstractArray{T2,2},
        VarT <: AbstractArray{T3,2}
@@ -26,6 +24,16 @@ struct EchelleObservation{T1,T2,T3,T4,T5} <: AbstractEchelleObservation where { 
    end
 end
 export EchelleObservation
+
+function EchelleObservation(;lambda::LambdaT,flux::FluxT,var::VarT,
+    z_bc::T4, instrument::T5, metadata::AbstractDict = Dict{Symbol,Any}()
+    )  where { T1<:Number, T2<:Number, T3<:Number, T4<:Number, T5<:AbstractInstrument,
+    LambdaT <: AbstractArray{T1,2}, FluxT <: AbstractArray{T2,2},
+    VarT <: AbstractArray{T3,2}
+    }
+    EchelleObservation{eltype(lambda),eltype(flux),eltype(var),typeof(z_bc),typeof(instrument)}(lambda,flux,var,z_bc,instrument,metadata)
+end
+
 
 """ EchelleObservationSet contains observations for multiple echelle observations.
 Arrays organized into (pixels,orders,observations).
@@ -70,11 +78,23 @@ end
 function z_bc( eos::EchelleObservationSet{T1,T2,T3, #= T4, =# T5}, obsid::Integer
    ) where {T1<:Number, T2<:Number, T3<:Number, #= T4<:Number, =# T5<:AbstractInstrument}
    @assert 1 <= obsid <= num_obs(eos)
-   return metadata_list[obsid][:z_bc]
+   return eos.metadata_list[obsid][:z_bc]
 end
 
 """ Extract one EchelleObservation from an EchelleObservationSet and obs number."""
 function EchelleObservation(eos::EchelleObservationSet{T1,T2,T3, #= T4, =# T5}, obs::Integer) where {T1<:Number, T2<:Number, T3<:Number, #= T4<:Number, =# T5<:AbstractInstrument}
    # md = merge(eos.metadata,eos.metadata_list[obs]) # TODO: Should we merge metadata from obs set?
    EchelleObservation(lambda=view(eos.lambda,:,:,obs), flux=view(eos.flux,:,:,obs), var=view(eos.var,:,:,obs), z_bc=z_bc(eos,obs), instrument=eos.instrument, metadata=eos.metadata_list[obs] )
+end
+
+
+
+function make_average_observation(eos::EchelleObservationSet{T1,T2,T3, #= T4, =# T5}) where {T1<:Number, T2<:Number, T3<:Number, #= T4<:Number, =# T5<:AbstractInstrument}
+   nppo = num_pixels_per_order(eos)
+   nord = num_orders(eos)
+   mean_z_bc = mean(map(i->z_bc(eos,i),1:num_obs(eos)))
+   EchelleObservation(lambda=reshape(mean(eos.lambda,dims=3),nppo,nord),
+                      flux=reshape(mean(eos.flux,dims=3),nppo,nord),
+                      var=reshape(mean(eos.flux,dims=3),nppo,nord),
+                      z_bc=mean_z_bc, instrument=eos.instrument, metadata=eos.metadata )
 end

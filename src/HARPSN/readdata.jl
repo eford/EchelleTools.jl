@@ -2,7 +2,8 @@
 #export read_data
 
 import ..EchelleObservation, ..EchelleObservationSet, ..OrdersType
-import ..AbstractInstrument, ..HARPSNType
+import ..AbstractInstrument
+#, ..HARPSNType
 #import ..harpsn_flux_hdu,  ..harpsn_all_orders
 using FITSIO
 
@@ -52,7 +53,8 @@ function read_data(filename::String; orders::OrdersType = harpsn_all_orders )
       lambda[:,ord] .= xarray' * coeff[:,ord]
    end
    metadata = Dict{Symbol,Any}(:Filename=>filename,:Instrument=>:HARPSN,:z_bc=>berv)
-   return EchelleObservation{eltype(lambda),eltype(flux),eltype(var),typeof(berv),HARPSNType}(flux=flux,var=var,lambda=lambda,z_bc=berv,metadata=metadata)
+#   return EchelleObservation{eltype(lambda),eltype(flux),eltype(var),typeof(berv),HARPSNType}(flux=flux,var=var,lambda=lambda,z_bc=berv,metadata=metadata)
+   return EchelleObservation(flux=flux,var=var,lambda=lambda,z_bc=berv,instrument=HARPSNType(), metadata=metadata)
 end
 
 """
@@ -108,5 +110,37 @@ function read_data(filename_list::AbstractArray{String,1};
    end
    return data
 end
+
+
+default_harpsn_blaze_file = joinpath(homedir(),"Downloads","HARPN.2015-07-31T17-02-35.072_blaze_A.fits")
+function read_blaze_list(filename::String = default_harpsn_blaze_file,
+      pixel_buffer_lo::Integer = default_pixel_buffer_lo,
+      pixel_buffer_hi::Integer = default_pixel_buffer_hi,
+      log_lambda_lo::AbstractArray{Float64,1} = zeros(length(harpsn_all_orders)),
+      log_lambda_hi::AbstractArray{Float64,1} = zeros(length(harpsn_all_orders)) )
+   fits = FITS(filename)
+   blaze_data = read(fits[1])
+   pixels_per_order, num_orders = size(blaze_data)
+   pixel_range = (1+default_pixel_buffer_lo):(pixels_per_order-default_pixel_buffer_lo)
+   blaze_list = Array{BlazeMap1D{Int64,Float64,Float32},1}(undef,num_orders)
+   @assert length(log_lambda_lo) == length(log_lambda_hi) == num_orders
+   for i in 1:num_orders
+      blaze_list[i] = BlazeMap1D(i,log_lambda_lo[i],log_lambda_hi[i],pixel_range, view(blaze_data,:,i) )
+   end
+
+   return BlazeMap2D(blaze_list)
+end
+export read_blaze_list
+
+function read_blaze_list(data::EchelleObservationSet, filename::String = default_harpsn_blaze_file,
+      pixel_buffer_lo::Integer = default_pixel_buffer_lo,
+      pixel_buffer_hi::Integer = default_pixel_buffer_hi
+      )
+   pixels_per_order, num_orders, num_obs = size(data.lambda)
+   pixel_range = (1+default_pixel_buffer_lo):(pixels_per_order-default_pixel_buffer_lo)
+   log_lambda_lo = map(i->log(minimum(data.lambda[1,i,:])),1:num_orders)
+   log_lambda_hi = map(i->log(maximum(data.lambda[end,i,:])),1:num_orders)
+   read_blaze_list(filename,pixel_buffer_lo,pixel_buffer_hi, log_lambda_lo, log_lambda_hi )
+ end
 
 #end # module

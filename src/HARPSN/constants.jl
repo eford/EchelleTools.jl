@@ -2,6 +2,14 @@ import ..speed_of_light_mps
 
 const harpsn_all_orders = 1:69
 const harpsn_flux_hdu = 1
+
+const harpsn_rv_orders = vcat(collect(1:54), collect(56:60), collect(62:63), collect(66:68) )
+
+default_blaze_degree = 4
+max_blaze_degree = 6
+default_pixel_buffer_lo = 64
+default_pixel_buffer_hi = 8
+
 #const harpsn_var_hdu = 5   # computed from flux and ron
 #const harpsn_lambda_hdu = 8 # computed from polynomial coefficients in heard
 

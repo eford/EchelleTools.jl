@@ -3,7 +3,6 @@ module Manifests
 import ..base_path, ..base_path_default, ..manifest_subdir_default, ..data_subdir_default
 import ..speed_of_light_mps
 
-export read
 export get_data_filenames, get_data_filenames_and_bsrv
 export get_base_path, set_base_path!, get_manifest_path, set_manifest_path!, get_data_path, set_data_path!
 
@@ -12,6 +11,15 @@ using FITSIO
 using DataFrames
 using Dates
 using Printf
+
+# Structure to define file format (works for HPF, see if need to generalize for EXPRES/HARPSN)
+#=
+struct ManifestFormatEntry <: AbstractManifestFormatEntry
+    name::Symbol
+    type::Type
+    cols::UnitRange{Int64}
+end
+=#
 
 # Specify paths to manifest and data files
 manifest_path_default = joinpath(base_path_default,manifest_subdir_default)
@@ -51,6 +59,8 @@ function read(filename::String; dvtol=0.0001, qthresh=0.99, date_start::Date, da
    #bsrv = df[:RVhel] .- df[:RVbary]
    return df
 end
+read_manifest = read
+export read_manifest
 
 """Get data filenames from a manifest DataFrame.  Optioanlly specify path to data."""
 function get_data_filenames(df::DataFrame; path::String = get_data_path(), suffix::String = "_e2ds_A.fits", verbose=false )

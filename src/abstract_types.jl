@@ -1,10 +1,13 @@
 # Abstract Types
-#abstract type AbstractInstrument end  # in constants
-
+abstract type AbstractInstrument end  
 abstract type AbstractEchelleObservationOrSet end
 abstract type AbstractEchelleObservation <: AbstractEchelleObservationOrSet end
 abstract type AbstractEchelleObservationSet <: AbstractEchelleObservationOrSet end
+#=
 abstract type AbstractBlazeType end
+abstract type AbstractBlaze1DType <: AbstractBlazeType end
+abstract type AbstractBlaze2DType <: AbstractBlazeType end
+=#
 abstract type AbstractPSF end
 abstract type AbstractSpectralOrderModel end
 abstract type AbstractSpectralModel end
@@ -12,9 +15,11 @@ abstract type AbstractObservationModel end
 abstract type AbstractObsSeriesModel end
 abstract type AbstractManifestFormatEntry end
 export  AbstractEchelleObservationOrSet, AbstractEchelleObservation, AbstractEchelleObservationSet
-export AbstractBlazeType, AbstractPSF
+export AbstractBlazeType, AbstractBlaze1DType, AbstractBlaze2DType
+export AbstractPSF
 export AbstractSpectralOrderModel, AbstractSpectralModel
-export AbstractObservationModel, AbstractManifestFormatEntry
+export AbstractObservationModel, AbstractObsSeriesModel
+export AbstractManifestFormatEntry
 
 # Type Aliases
 #const AbstractEchelleObservationOrSet = Union{AbstractEchelleObservation, AbstractEchelleObservationSet}
